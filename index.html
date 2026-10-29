@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Apple of Fortune</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cairo", sans-serif;
+        }
+
+        body {
+            background-color: #010d08;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-wrapper {
+            width: 100vw;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 900px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            background: 
+                radial-gradient(circle at 60% 35%, rgba(130, 185, 70, 0.45) 0%, transparent 45%),
+                radial-gradient(circle at 85% 15%, rgba(80, 160, 130, 0.4) 0%, transparent 40%),
+                radial-gradient(circle at 20% 70%, rgba(10, 60, 45, 0.8) 0%, transparent 50%),
+                linear-gradient(180deg, #184b42 0%, #0d3830 35%, #05241d 75%, #021711 100%);
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px 2px 16px;
+            z-index: 10;
+        }
+
+        .icon-nav {
+            background: none;
+            border: none;
+            color: #d1eae0;
+            font-size: 20px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .balance-chip {
+            background: rgba(14, 46, 36, 0.9);
+            border: 1px solid #23654d;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 3px 14px 3px 6px;
+            gap: 8px;
+        }
+
+        .balance-val {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .chip-plus {
+            background: #27ae60;
+            color: #fff;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .game-title {
+            text-align: center;
+            font-size: 12.5px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            color: #bbf0dc;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        }
+
+        .board-grid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            padding: 2px 12px;
+            gap: 2px;
+            z-index: 5;
+            position: relative;
+        }
+
+        .row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            transition: all 0.25s ease;
+        }
+
+        .indicator-pill {
+            width: 46px;
+            height: 20px;
+            background: rgba(8, 30, 23, 0.75);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #4b806d;
+            direction: ltr;
+        }
+
+        .row-item.active .indicator-pill {
+            background: #68bd45;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(104, 189, 69, 0.7);
+        }
+
+        .plate-cell {
+            flex: 1;
+            max-width: 52px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #ba6333 0%, #873e16 65%, #461c06 100%);
+            border: 2px solid #361706;
+            box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.3), 0 3px 6px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .plate-cell.dim {
+            filter: brightness(0.65) saturate(0.75);
+            opacity: 0.65;
+        }
+
+        .row-item.active .plate-cell {
+            filter: brightness(1) saturate(1.1);
+            opacity: 1;
+        }
+
+        .row-item.active .plate-cell:active {
+            transform: scale(0.92);
+        }
+
+        .dome-cover {
+            width: 82%;
+            height: 82%;
+            background: radial-gradient(circle at 50% 30%, #f78d38 0%, #d85c07 70%, #9c3c00 100%);
+            border-radius: 50% 50% 38% 38%;
+            border: 2px solid #5a2000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.6);
+            animation: pulseGlow 1.4s infinite alternate ease-in-out;
+        }
+
+        .dome-cover::after {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            width: 75%;
+            height: 4px;
+            background: #2fe1cf;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+        }
+
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 2px rgba(255, 170, 0, 0.3)); }
+            100% { filter: drop-shadow(0 0 7px rgba(255, 200, 0, 0.8)); }
+        }
+
+        .apple-icon {
+            width: 78%;
+            height: 78%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .center-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-top: 4px solid #68bd45;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            z-index: 20;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .dock-controls {
+            background: #091a14;
+            border-top: 1px solid #163628;
+            padding: 8px 14px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .stats-banner {
+            text-align: center;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #d1eae0;
+        }
+
+        .stats-banner span {
+            color: #68bd45;
+            margin-right: 4px;
+        }
+
+        .btn-action-main {
+            background: #5292c6;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 13px;
+            font-size: 16.5px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-action-main.cashout-state {
+            background: #3880b9;
+        }
+
+        .result-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 17, 12, 0.7);
+            backdrop-filter: blur(2px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+        }
+
+        .result-box {
+            text-align: center;
+            color: #fff;
+            animation: popIn 0.3s ease;
+        }
+
+        .result-box h2 {
+            font-size: 26px;
+            color: #68bd45;
+            margin-bottom: 6px;
+        }
+
+        .result-box p {
+            font-size: 16px;
+            color: #d1eae0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+    <div class="header-bar">
+        <button class="icon-nav">➔</button>
+        <div class="balance-chip">
+            <span class="balance-val" id="balanceText">37.98 ج.م</span>
+            <button class="chip-plus" onclick="recharge()">+</button>
+        </div>
+        <button class="icon-nav">ⓘ</button>
+    </div>
+
+    <div class="game-title">APPLE OF FORTUNE</div>
+
+    <div class="board-grid" id="boardGrid">
+        <div class="center-loader" id="loader"></div>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-box">
+            <h2 id="resTitle">الفوز!</h2>
+            <p id="resDesc">أرباحك: 40.2 ج.م</p>
+        </div>
+    </div>
+
+    <div class="dock-controls">
+        <div class="stats-banner" id="payoutBanner">
+            الأرباح الحالية: <span id="currentProfit">0.0 ج.م</span>
+        </div>
+
+        <button id="mainBtn" class="btn-action-main" onclick="onMainAction()">الرهان (10 ج.م)</button>
+    </div>
+</div>
+
+<script>
+    const MULTIPLIERS = [1.23, 1.54, 1.93, 2.41, 4.02, 6.71, 11.18, 27.97, 69.93, 349.68];
+    const ROWS = 10;
+    const COLS = 5;
+    const BAD_APPLES = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4];
+
+    const GOOD_APPLE_SVG = `
+        <svg viewBox="0 0 100 100" class="apple-icon">
+            <path d="M50 25 C45 10 55 5 60 5" stroke="#3e2723" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M55 12 C65 10 70 18 62 20 C54 22 50 15 55 12" fill="#4caf50"/>
+            <path d="M50 30 C35 20 15 28 15 50 C15 75 35 95 50 95 C65 95 85 75 85 50 C85 28 65 20 50 30 Z" 
+                  fill="url(#appleGrad)" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.6))"/>
+            <defs>
+                <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stop-color="#ff5252"/>
+                    <stop offset="55%" stop-color="#d32f2f"/>
+                    <stop offset="100%" stop-color="#5f0909"/>
+                </radialGradient>
+            </defs>
+        </svg>`;
+
+    const BAD_APPLE_SVG = `
+        <svg viewBox="0 0 100 100" class="apple-icon">
+            <path d="M50 20 C45 8 55 5 60 5" stroke="#3e2723" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M30 25 C50 25 50 35 70 25 C75 40 60 50 70 65 C65 80 55 85 50 85 C45 85 35 80 30 65 C40 50 25 40 30 25 Z" 
+                  fill="#f1d0a5" stroke="#8d6e63" stroke-width="2"/>
+            <circle cx="50" cy="45" r="3" fill="#3e2723"/>
+            <circle cx="50" cy="60" r="3" fill="#3e2723"/>
+            <path d="M30 25 C38 23 45 28 50 30 C55 28 62 23 70 25 C65 20 35 20 30 25 Z" fill="#c62828"/>
+            <path d="M30 85 C38 87 45 82 50 80 C55 82 62 87 70 85 C65 90 35 90 30 85 Z" fill="#c62828"/>
+        </svg>`;
+
+    let balance = 37.98;
+    let betAmount = 10.0;
+    let isPlaying = false;
+    let activeLevel = 0;
+    let boardMap = [];
+
+    function buildGrid() {
+        const grid = document.getElementById('boardGrid');
+        grid.innerHTML = '<div class="center-loader" id="loader"></div>';
+
+        for (let r = ROWS - 1; r >= 0; r--) {
+            const row = document.createElement('div');
+            row.className = `row-item ${isPlaying && r === activeLevel ? 'active' : ''}`;
+            row.id = `row-${r}`;
+
+            const pill = document.createElement('div');
+            pill.className = 'indicator-pill';
+            pill.innerText = `x${MULTIPLIERS[r]}`;
+            row.appendChild(pill);
+
+            for (let c = 0; c < COLS; c++) {
+                const plate = document.createElement('div');
+                plate.className = `plate-cell ${r !== activeLevel || !isPlaying ? 'dim' : ''}`;
+                plate.id = `plate-${r}-${c}`;
+
+                if (!isPlaying && r === 0) {
+                    plate.className = 'plate-cell';
+                    plate.innerHTML = `<div class="dome-cover"></div>`;
+                }
+
+                plate.onclick = () => selectBarrel(r, c);
+                row.appendChild(plate);
+            }
+            grid.appendChild(row);
+        }
+    }
+
+    function generateGameData() {
+        boardMap = [];
+        for (let r = 0; r < ROWS; r++) {
+            const badCount = BAD_APPLES[r];
+            let row = Array(COLS).fill(true);
+            let placed = 0;
+            while (placed < badCount) {
+                let idx = Math.floor(Math.random() * COLS);
+                if (row[idx] === true) {
+                    row[idx] = false;
+                    placed++;
+                }
+            }
+            boardMap.push(row);
+        }
+    }
+
+    function onMainAction() {
+        if (!isPlaying) {
+            if (balance < betAmount) {
+                alert('الرصيد غير كافٍ');
+                return;
+            }
+
+            document.getElementById('resultOverlay').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                balance -= betAmount;
+                updateBalanceUI();
+
+                isPlaying = true;
+                activeLevel = 0;
+                generateGameData();
+                buildGrid();
+
+                document.getElementById('payoutBanner').innerHTML = `الأرباح الحالية: <span>0.0 ج.م</span>`;
+                const btn = document.getElementById('mainBtn');
+                btn.innerText = 'خذ الأرباح';
+                btn.classList.add('cashout-state');
+
+                updateActiveRowView();
+            }, 500);
+        } else {
+            takeProfit();
+        }
+    }
+
+    function updateActiveRowView() {
+        for (let r = 0; r < ROWS; r++) {
+            const row = document.getElementById(`row-${r}`);
+            if (!row) continue;
+
+            if (r === activeLevel) {
+                row.classList.add('active');
+                row.querySelectorAll('.plate-cell').forEach(p => {
+                    p.classList.remove('dim');
+                    if (!p.innerHTML) {
+                        p.innerHTML = `<div class="dome-cover"></div>`;
+                    }
+                });
+            } else {
+                row.classList.remove('active');
+                row.querySelectorAll('.plate-cell').forEach(p => {
+                    if (!p.querySelector('.apple-icon')) {
+                        p.innerHTML = '';
+                    }
+                    p.classList.add('dim');
+                });
+            }
+        }
+    }
+
+    function selectBarrel(r, c) {
+        if (!isPlaying || r !== activeLevel) return;
+
+        const isGood = boardMap[r][c];
+        const plate = document.getElementById(`plate-${r}-${c}`);
+
+        if (isGood) {
+            plate.innerHTML = GOOD_APPLE_SVG;
+            const currentWin = (betAmount * MULTIPLIERS[activeLevel]).toFixed(1);
+            document.getElementById('payoutBanner').innerHTML = `الأرباح الحالية: <span>${currentWin} ج.م</span>`;
+
+            if (activeLevel === ROWS - 1) {
+                takeProfit();
+            } else {
+                activeLevel++;
+                updateActiveRowView();
+            }
+        } else {
+            plate.innerHTML = BAD_APPLE_SVG;
+            revealAllMap();
+            setTimeout(() => {
+                showResultScreen('للأسف خسرت!', 'حظ أوفر في المرة القادمة', false);
+            }, 600);
+        }
+    }
+
+    function takeProfit() {
+        let winIndex = activeLevel;
+        if (!document.querySelector(`#row-${activeLevel} .apple-icon`)) {
+            winIndex = activeLevel > 0 ? activeLevel - 1 : 0;
+        }
+
+        const winAmount = (betAmount * MULTIPLIERS[winIndex]).toFixed(1);
+        balance += parseFloat(winAmount);
+        updateBalanceUI();
+
+        revealAllMap();
+        setTimeout(() => {
+            showResultScreen('الفوز!', `أرباحك: ${winAmount} ج.م`, true);
+        }, 500);
+    }
+
+    function revealAllMap() {
+        for (let r = 0; r < ROWS; r++) {
+            const row = document.getElementById(`row-${r}`);
+            row.classList.remove('active');
+            for (let c = 0; c < COLS; c++) {
+                const cell = document.getElementById(`plate-${r}-${c}`);
+                cell.classList.remove('dim');
+                if (!cell.querySelector('.apple-icon')) {
+                    cell.innerHTML = boardMap[r][c] ? GOOD_APPLE_SVG : BAD_APPLE_SVG;
+                }
+            }
+        }
+    }
+
+    function showResultScreen(title, subtitle, isWin) {
+        isPlaying = false;
+        const resOverlay = document.getElementById('resultOverlay');
+        const resTitle = document.getElementById('resTitle');
+        const resDesc = document.getElementById('resDesc');
+
+        resTitle.innerText = title;
+        resTitle.style.color = isWin ? '#68bd45' : '#e74c3c';
+        resDesc.innerText = subtitle;
+        resOverlay.style.display = 'flex';
+
+        const btn = document.getElementById('mainBtn');
+        btn.innerText = `العب مرة أخرى (${betAmount} ج.م)`;
+        btn.classList.remove('cashout-state');
+    }
+
+    function updateBalanceUI() {
+        document.getElementById('balanceText').innerText = `${balance.toFixed(2)} ج.م`;
+    }
+
+    function recharge() {
+        balance += 50;
+        updateBalanceUI();
+    }
+
+    buildGrid();
+</script>
+</body>
+</html>
